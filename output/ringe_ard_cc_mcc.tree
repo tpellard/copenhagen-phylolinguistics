@@ -1,0 +1,35 @@
+#NEXUS
+
+	Begin taxa;
+	Dimensions ntax=24;
+	Taxlabels
+		Albanian
+		Armenian
+		Avestan
+		Gothic
+		Greek
+		Hittite
+		Latin
+		Latvian
+		Lithuanian
+		Luvian
+		Lycian
+		Old_Church_Slavic
+		Old_English
+		Old_High_German
+		Old_Irish
+		Old_Norse
+		Old_Persian
+		Old_Prussian
+		Oscan
+		Tocharian_A
+		Tocharian_B
+		Umbrian
+		Vedic_Sanskrit
+		Welsh
+		;
+End;
+
+Begin trees;
+tree TREE1 = [&R]((((((((((Old_English[&index=5,age_95%_HPD={0.124396,0.410179}]:0.008762,Old_High_German[&index=6,age_95%_HPD={0.121128,0.407436}]:0.012930)[&index=25,posterior=0.999867,age_95%_HPD={0.132838,0.417967}]:0.008806,Old_Norse[&index=4,age_95%_HPD={0.118597,0.403727}]:0.021614)[&index=26,posterior=0.743901,age_95%_HPD={0.144418,0.429142}]:0.004145,Gothic[&index=7,age_95%_HPD={0.092358,0.381829}]:0.051580)[&index=27,posterior=1.000000,age_95%_HPD={0.146551,0.431141}]:0.094930,(Old_Irish[&index=9,age_95%_HPD={0.093063,0.382212}]:0.065849,Welsh[&index=8,age_95%_HPD={0.088637,0.378126}]:0.069129)[&index=28,posterior=1.000000,age_95%_HPD={0.161664,0.449648}]:0.075627)[&index=29,posterior=0.602453,age_95%_HPD={0.242403,0.522926}]:0.008795,((Oscan[&index=1,age_95%_HPD={0,0.248685}]:0.179964,Umbrian[&index=2,age_95%_HPD={0,0.271744}]:0.155492)[&index=30,posterior=0.998933,age_95%_HPD={0.149509,0.434594}]:0.073132,Latin[&index=3,age_95%_HPD={0.189012,0.46949}]:0.037635)[&index=31,posterior=1.000000,age_95%_HPD={0.229259,0.504246}]:0.030693)[&index=32,posterior=0.943608,age_95%_HPD={0.254541,0.531873}]:0.006753,((((Latvian[&index=17,age_95%_HPD={0.098735,0.385216}]:0.044071,Lithuanian[&index=18,age_95%_HPD={0.123472,0.4095}]:0.022501)[&index=33,posterior=1.000000,age_95%_HPD={0.146183,0.431024}]:0.044745,Old_Prussian[&index=16,age_95%_HPD={0.102402,0.392344}]:0.084713)[&index=34,posterior=1.000000,age_95%_HPD={0.190443,0.473812}]:0.016889,Old_Church_Slavic[&index=15,age_95%_HPD={0.15385,0.437644}]:0.054481)[&index=35,posterior=1.000000,age_95%_HPD={0.210411,0.492708}]:0.046323,((Avestan[&index=21,age_95%_HPD={0.158628,0.439181}]:0.023442,Old_Persian[&index=20,age_95%_HPD={0,0.258624}]:0.200971)[&index=36,posterior=1.000000,age_95%_HPD={0.185349,0.462148}]:0.035394,Vedic_Sanskrit[&index=19,age_95%_HPD={0.191458,0.47317}]:0.025932)[&index=37,posterior=1.000000,age_95%_HPD={0.22118,0.500544}]:0.038259)[&index=38,posterior=0.879883,age_95%_HPD={0.255829,0.531704}]:0.004219)[&index=39,posterior=0.657912,age_95%_HPD={0.26392,0.536216}]:0.003077,(Armenian[&index=13,age_95%_HPD={0.141946,0.43128}]:0.103473,Greek[&index=14,age_95%_HPD={0.178904,0.46492}]:0.068881)[&index=40,posterior=0.954673,age_95%_HPD={0.248436,0.531169}]:0.012608)[&index=41,posterior=0.317958,age_95%_HPD={0.26787,0.535786}]:0.000277,Albanian[&index=12,age_95%_HPD={0.082234,0.381952}]:0.167895)[&index=42,posterior=0.299427,age_95%_HPD={0.271395,0.538053}]:0.010339,(Tocharian_A[&index=10,age_95%_HPD={0.067145,0.367302}]:0.051549,Tocharian_B[&index=11,age_95%_HPD={0.082959,0.378283}]:0.032314)[&index=43,posterior=1.000000,age_95%_HPD={0.117311,0.410856}]:0.142430)[&index=44,posterior=1.000000,age_95%_HPD={0.271669,0.550406}]:0.068672,((Luvian[&index=24,age_95%_HPD={0.068672,0.336391}]:0.132622,Lycian[&index=22,age_95%_HPD={0,0.118094}]:0.313070)[&index=45,posterior=0.762165,age_95%_HPD={0.244555,0.439471}]:0.052151,Hittite[&index=23,age_95%_HPD={0.135191,0.433597}]:0.097795)[&index=46,posterior=1.000000,age_95%_HPD={0.275734,0.512503}]:0.067971)[&index=47,posterior=1.000000,age_95%_HPD={0.336683,0.590364}]:0.000000;
+End;

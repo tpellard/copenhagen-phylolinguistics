@@ -1,0 +1,137 @@
+### Path to data folder
+path = "/Users/davidgoldstein/Documents/LaTeX/Teaching/2020-2021/phylogenetics-workshop/data/"
+
+### Read in data file
+data <- readDiscreteCharacterData(path + "ringe_binary_screened.nex")
+
+
+# Get some useful variables from the data. We need these later on.
+num_taxa <- data.ntaxa()
+
+#Number of branches in an unrooted tree
+#num_branches <- 2 * num_taxa - 3
+
+#Number of branch in a rooted tree (this is being used because of rooted=TRUE belows)
+num_branches <- 2 * num_taxa - 2
+taxa <- data.taxa()
+
+#These are helpers
+#We want to store all the moves 
+#Monitors store variables to a file, monitoring the state of the variable
+moves    = VectorMoves()
+monitors = VectorMonitors()
+
+
+######################
+## Transition Model ##
+######################
+
+
+####RATE HYPERPRIOR####
+
+rate_pr ~ dnUniformNatural(0, 100)
+moves.append( mvRandomIntegerWalk(rate_pr, weight = 2.0) )
+
+####RATES####
+
+q_01 ~ dnExponential(rate_pr)
+q_10 ~ dnExponential(rate_pr)
+ 
+####MOVES ON RATES#### 
+
+moves.append( mvScale( q_01, weight=2 ) )
+moves.append( mvScale( q_10, weight=2 ) )
+
+
+####BUILD Q-MATRIX#### 
+
+Q := fnFreeK( [ q_01, q_10 ], rescale=TRUE ) 
+
+
+##############
+# Tree model #
+##############
+
+
+anatolian = clade("Hittite", "Luvian", "Lycian") 
+germanic = clade("Old_English", "Old_Norse", "Old_High_German", "Gothic")
+indoiranian = clade("Old_Persian", "Avestan", "Vedic_Sanskrit")
+tocharian = clade("Tocharian_A", "Tocharian_B")
+italic = clade("Oscan", "Umbrian", "Latin")
+celtic = clade("Old_Irish", "Welsh")
+baltic = clade("Lithuanian", "Latvian", "Old_Prussian")
+
+clade_constraints <- v(germanic, indoiranian, tocharian, italic, celtic, baltic)
+
+
+topology ~ dnUniformTopology(taxa, outgroup=anatolian, constraints=clade_constraints,rooted=TRUE)
+
+#These are moves that change the tree topology
+
+moves.append( mvNNI(topology, weight=num_taxa/2.0) )
+moves.append( mvSPR(topology, weight=num_taxa/10.0) )
+
+# Branch length prior
+for (i in 1:num_branches) {
+    bl[i] ~ dnExponential(10.0)
+    moves.append( mvScale(bl[i]) )
+}
+
+TL := sum(bl)
+    
+psi := treeAssembly(topology, bl)
+
+
+#############################
+# Among-Site Rate Variation #
+#############################
+
+# Create a discretized gamma distribution of rate categories  #
+alpha ~ dnUniform( 0.0, 1E8 )
+alpha.setValue( 1.0 )
+
+moves.append( mvScale(alpha, lambda=0.5,tune=true, weight=2.0) )
+
+discrete_gamma := fnDiscretizeGamma( alpha, alpha, 4 )
+
+
+###################
+# PhyloCTMC Model #
+###################
+
+# the sequence evolution model
+#the observed sequences are drawn from a continuous time markov chain
+
+seq ~ dnPhyloCTMC(tree=psi, Q=Q, siteRates=discrete_gamma, type="Standard")
+
+
+#Attach the data
+seq.clamp(data)
+
+mymodel = model(psi)
+
+####################################
+# Run the power-posterior analysis #
+####################################
+
+pow_p = powerPosterior(mymodel, moves, monitors, "output/mlk_ringe_ard_asrv_cc_powp.out", cats=127, sampleFreq=10)
+pow_p.burnin(generations=400,tuningInterval=200)
+
+pow_p.run(generations=100)
+
+
+###################################
+# Run the stepping-stone analysis #
+###################################
+ss = steppingStoneSampler(file="output/mlk_ringe_ard_asrv_cc_powp.out", powerColumnName="power", likelihoodColumnName="likelihood")
+
+write("Stepping stone marginal likelihood:\t", ss.marginal() )
+
+###################################
+#  Run the path-sampling analysis #
+###################################
+
+ps = pathSampler(file="output/mlk_ringe_ard_asrv_cc_powp.out", powerColumnName="power", likelihoodColumnName="likelihood")
+write("Path-sampling marginal likelihood:\t", ps.marginal() )
+
+

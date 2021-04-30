@@ -1,0 +1,153 @@
+### Path to data folder
+path = "/Users/davidgoldstein/Documents/LaTeX/Teaching/2020-2021/phylogenetics-workshop/data/"
+
+### Read in data file
+data <- readDiscreteCharacterData(path + "ringe_binary_screened.nex")
+
+
+# Get some useful variables from the data. We need these later on.
+num_taxa <- data.ntaxa()
+
+#Number of branches in an unrooted tree
+#num_branches <- 2 * num_taxa - 3
+
+#Number of branch in a rooted tree (this is being used because of rooted=TRUE belows)
+
+num_branches <- 2 * num_taxa - 2
+taxa <- data.taxa()
+
+#These are helpers
+#We want to store all the moves 
+#Monitors store variables to a file, monitoring the state of the variable
+moves    = VectorMoves()
+monitors = VectorMonitors()
+
+
+######################
+## Transition Model ##
+######################
+
+
+####RATE HYPERPRIOR####
+
+rate_pr_01 ~ dnUniformNatural(0, 100)
+moves.append( mvRandomIntegerWalk(rate_pr_01, weight = 2.0) )
+
+rate_pr_10 ~ dnUniformNatural(0, 100)
+moves.append( mvRandomIntegerWalk(rate_pr_10, weight = 2.0) )
+
+####RATES####
+
+q_01 ~ dnExponential(rate_pr_01)
+q_10 ~ dnExponential(rate_pr_10)
+ 
+####MOVES ON RATES#### 
+
+moves.append( mvScale( q_01, weight=2.0, lambda = 1.0 ) )
+moves.append( mvScale( q_01, weight=2.0, lambda = 0.1 ) )
+moves.append( mvScale( q_01, weight=2.0, lambda = 0.01 ) )
+
+
+
+moves.append( mvScale( q_10, weight=2.0, lambda = 1.0 ) )
+moves.append( mvScale( q_10, weight=2.0, lambda = 0.1 ) )
+moves.append( mvScale( q_10, weight=2.0, lambda = 0.01 ) )
+
+####BUILD Q-MATRIX#### 
+
+#NB rescales by default
+Q := fnFreeK( [ q_01, q_10 ] ) 
+
+
+##############
+# Tree model #
+##############
+
+anatolian = clade("Hittite", "Luvian", "Lycian") 
+
+germanic = clade("Old_English", "Old_Norse", "Old_High_German", "Gothic")
+indoiranian = clade("Old_Persian", "Avestan", "Vedic_Sanskrit")
+tocharian = clade("Tocharian_A", "Tocharian_B")
+italic = clade("Oscan", "Umbrian", "Latin")
+celtic = clade("Old_Irish", "Welsh")
+baltic = clade("Lithuanian", "Latvian", "Old_Prussian")
+
+clade_constraints <- v(germanic, indoiranian, tocharian, italic, celtic, baltic)
+
+
+topology ~ dnUniformTopology(taxa, outgroup=anatolian, constraints=clade_constraints,rooted=TRUE)
+
+#These are moves that change the tree topology
+
+moves.append( mvNNI(topology, weight=num_taxa/2.0) )
+moves.append( mvSPR(topology, weight=num_taxa/10.0) )
+
+# Branch length prior
+
+for (i in 1:num_branches) {
+    bl[i] ~ dnExponential(10.0)
+    moves.append( mvScale(bl[i]) )
+}
+
+TL := sum(bl)
+    
+psi := treeAssembly(topology, bl)
+
+
+
+###################
+# PhyloCTMC Model #
+###################
+
+#The sequence evolution model
+seq ~ dnPhyloCTMC(tree=psi, Q=Q, type="Standard")
+
+
+# attach the data
+seq.clamp(data)
+
+
+############
+# Analysis #
+############
+
+#You can use any node as the argument of model()
+mymodel = model(psi)
+
+generations = 100
+
+
+#This prints monitors to the screen. This was printing the treelength every 1000 generations
+monitors.append( mnScreen(TL, printgen=generations) )
+#This monitors the trees and puts them in a file
+monitors.append( mnFile(psi, filename="output/ringe_ard_cc.trees", printgen=generations) )
+#Model monitor
+monitors.append( mnModel(filename="output/ringe_ard_cc.log", printgen=generations) )
+
+mymcmc = mcmc(mymodel, moves, monitors) 
+
+mymcmc.burnin(generations=10000, tuningInterval=200)
+
+#Add underPrior=TRUE to run the model under the prior distributions
+mymcmc.run(generations=1E6)
+
+#This gives you a summary of the MCMC chains
+mymcmc.operatorSummary()
+
+
+###################
+# Post processing #
+###################
+
+
+#Read in the tree trace
+treetrace = readTreeTrace("output/ringe_ard_cc.trees", outgroup=anatolian)
+
+#MAP tree
+map_tree = mapTree(treetrace, "output/ringe_ard_cc_map.tree")
+#MCC tree
+mcc_tree = mccTree(treetrace, "output/ringe_ard_cc_mcc.tree")
+#Consensus tree
+mcc_tree = consensusTree(treetrace, "output/ringe_ard_cc_consensus.tree")
+
+
